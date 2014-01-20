@@ -448,22 +448,19 @@ var TouchControls = function() {
 	// diferente para que cambie la apariencia del botón en
 	// función de si está presionado (opaco) o no (más
 	// transparente)
-	ctx.globalAlpha = on ? 0.9 : 0.6;
+		ctx.globalAlpha = on ? 0.9 : 0.6;
 
-	ctx.fillStyle =  "#CCC";
-	ctx.fillRect(x,y,blockWidth,blockWidth);
+		ctx.fillStyle =  "#CCC";
+		ctx.fillRect(x,y,blockWidth,blockWidth);
 
-	ctx.fillStyle = "#FFF";
-	ctx.textAlign = "center";
-	ctx.globalAlpha = 1.0;
-	ctx.font = "bold " + (3*unitWidth/4) + "px arial";
+		ctx.fillStyle = "#FFF";
+		ctx.textAlign = "center";
+		ctx.globalAlpha = 1.0;
+		ctx.font = "bold " + (3*unitWidth/4) + "px arial";
 
 
-	ctx.fillText(txt, 
-                     x+blockWidth/2,
-                     y+3*blockWidth/4+5);
+		ctx.fillText(txt, x+blockWidth/2, y+3*blockWidth/4+5);
     };
-
 
 
     this.draw = function(ctx) {
@@ -471,33 +468,34 @@ var TouchControls = function() {
 	// los siguientes cambios que se hacen a la opacidad del fondo
 	// y al font dentro de drawSquare() afecten a otras llamadas
 	// del canvas
-	ctx.save();
+		ctx.save();
 
-	var yLoc = Game.height - unitWidth;
-	this.drawSquare(ctx,gutterWidth,yLoc,"\u25C0", Game.keys['left']);
-	this.drawSquare(ctx,unitWidth + gutterWidth,yLoc,"\u25B6", Game.keys['right']);
-	this.drawSquare(ctx,4*unitWidth,yLoc,"A",Game.keys['fire']);
+		var yLoc = Game.height - unitWidth;
+		this.drawSquare(ctx,gutterWidth,yLoc,"\u25C0", Game.keys['left']);
+		this.drawSquare(ctx,unitWidth + gutterWidth,yLoc,"\u25B6", Game.keys['right']);
+		this.drawSquare(ctx, 3*unitWidth,yLoc, "B", Game.keys['fbl', 'fbr']);
+		this.drawSquare(ctx,4*unitWidth,yLoc,"A",Game.keys['fire']);
 
 	// Recupera el estado salvado al principio del método
-	ctx.restore();
+		ctx.restore();
     };
 
     this.step = function(dt) { };
 
     // Manejador para eventos de la pantalla táctil
     this.trackTouch = function(e) {
-	var touch, x;
+		var touch, x;
 	
 	// Elimina comportamiento por defecto para este evento, como
 	// scrolling, clicking, zooming, etc.
-	e.preventDefault();
+		e.preventDefault();
 
 	// Detección de eventos sobre las dos franjas de la izquierda
 	// correspondientes a flecha izquierda y flecha derecha
-	Game.keys['left'] = false;
-	Game.keys['right'] = false;
+		Game.keys['left'] = false;
+		Game.keys['right'] = false;
 
-	for(var i=0;i<e.targetTouches.length;i++) {
+		for(var i=0;i<e.targetTouches.length;i++) {
 	    // Independientemente de dónde se tocó originalmente, y
 	    // del tipo de evento, nos fijamos en todos los dedos
 	    // (targetTouches), y si hay alguno sobre los botones de
@@ -505,42 +503,51 @@ var TouchControls = function() {
 	    // desplazar los dedos sin levantarlos, y que se generen
 	    // eventos cuando pasan por encima de los botones de
 	    // dirección
-	    touch = e.targetTouches[i];
+		    touch = e.targetTouches[i];
 
 	    // Al fijarnos sólo en las coordenadas X hacemos que toda
 	    // la franja vertical de cada botón sea activa.
-	    x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
-	    if(x < unitWidth) {
-		Game.keys['left'] = true;
-	    } 
-	    if(x > unitWidth && x < 2*unitWidth) {
-		Game.keys['right'] = true;
-	    } 
-	}
+	    	x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
+	    	if(x < unitWidth) {
+				Game.keys['left'] = true;
+	    	}
+	    	if(x > unitWidth && x < 2*unitWidth) {
+				Game.keys['right'] = true;
+	    	} 
+	    	if (e.type==='touchmove'){
+	    		if (x>unitWidth && x<3*unitWidth){
+	    			if (Game.width<3*unitWidth){
+	    				Game.keys['fbl']=true;
+	    			}else{
+	    				Game.keys['fbr']=true;
+	    			}
+	    		}
+	    	}
+		};
 
 	// Detección de eventos sobre franja de la derecha: disparo
-	if(e.type == 'touchstart' || e.type == 'touchend') {
-	    for(i=0;i<e.changedTouches.length;i++) {
-		// Sólo consideramos dedos que han intervenido en el
+		if(e.type == 'touchstart' || e.type == 'touchend') {
+	    	for(i=0;i<e.changedTouches.length;i++) {
+			// Sólo consideramos dedos que han intervenido en el
 		// evento actual (touchstart o touchend), por lo que 
                 // miramos en changedTouches
-		touch = e.changedTouches[i];
+				touch = e.changedTouches[i];
 
 		// Al fijarnos sólo en las coordenadas X hacemos que toda
 		// la franja vertical de cada botón sea activa.
-		x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
-		if(x > 4 * unitWidth) {
-		    Game.keys['fire'] = (e.type == 'touchstart');
-		}
-	    }
-	}
+				x = touch.pageX / Game.canvasMultiplier - Game.canvas.offsetLeft;
+				if(x > 4 * unitWidth) {
+		    		Game.keys['fire'] = (e.type == 'touchstart');
+				}
+			}
+    	};
     };
 
     // Registra los manejadores para los eventos táctiles asociados al
     // elemento Game.canvas del DOM
-    Game.canvas.addEventListener('touchstart',this.trackTouch,true);
-    Game.canvas.addEventListener('touchmove',this.trackTouch,true);
-    Game.canvas.addEventListener('touchend',this.trackTouch,true);
+    	Game.canvas.addEventListener('touchstart',this.trackTouch,true);
+    	Game.canvas.addEventListener('touchmove',this.trackTouch,true);
+    	Game.canvas.addEventListener('touchend',this.trackTouch,true);
 
     // Si ha habido un evento de toque es que estamos en una pantalla
     // tactil, en cuyo caso guardamos un offset para que la nave del
@@ -548,7 +555,7 @@ var TouchControls = function() {
     // los botones en la pantalla tactil.  Ver en game.js cómo hemos
     // modificado PlayerShip para que tenga en cuenta este
     // offset.
-    Game.playerOffset = unitWidth + 20;
+	    Game.playerOffset = unitWidth + 20;
 };
 
 
