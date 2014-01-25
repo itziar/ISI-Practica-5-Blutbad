@@ -78,7 +78,17 @@ var level1 = [
     [ 22000,    25000, 400,         'wiggle',   { x: 100 } ]
 ];
 
-
+var level2 = [
+    //  Comienzo, Fin,   Frecuencia,  Tipo,       Override
+    [ 0,        4000,  300,         'step'                 ],
+    [ 6000,     13000, 600,         'ltr'                  ],
+    [ 10000,    16000, 100,         'circle'               ],
+    [ 17800,    20000, 300,         'straight', { x: 50  } ],
+    [ 18200,    20000, 200,         'straight', { x: 90  } ],
+    [ 18200,    20000, 300,         'straight', { x: 10  } ],
+    [ 22000,    25000, 200,         'wiggle',   { x: 150 } ],
+    [ 22000,    25000, 200,         'wiggle',   { x: 100 } ]
+];
 
 var playGame = function() {
     var board = new GameBoard();
@@ -87,8 +97,19 @@ var playGame = function() {
     // Se un nuevo nivel al tablero de juego, pasando la definición de
     // nivel level1 y la función callback a la que llamar si se ha
     // ganado el juego
-    board.add(new Level(level1, winGame));
+    board.add(new Level(level1, nivel2));
     Game.setBoard(3,board);
+};
+
+var l2=function(){
+    var board=new GameBoard();
+    board.add(new PlayerShip());
+    board.add(new Level(level2, winGame));
+    Game.setBoard(3,board);
+};
+
+var nivel2 =function(){
+    Game.setBoard(3,new TitleScreen("Level 2", "press fire to next level", l2));
 };
 
 // Llamada cuando han desaparecido todos los enemigos del nivel sin
@@ -184,37 +205,68 @@ var Starfield = function(speed,opacity,numStars,clear) {
 
 // La clase PlayerShip tambien ofrece la interfaz step(), draw() para
 // poder ser dibujada desde el bucle principal del juego
-var PlayerShip = function() { 
-    this.setup('ship', { vx: 0, reloadTime: 0.25, maxVel: 200 });
+var PlayerShip = function() {
+    this.setup('ship', {
+        vx: 0,
+        frame: 0,
+        reloadTime: 0.25,
+        maxVel: 200
+    });
 
     this.reload = this.reloadTime;
-    this.x = Game.width/2 - this.w / 2;
-    this.y = Game.height - Game.playerOffset - this.h;
+    this.x = Game.width / 2 - this.w / 2;
+    this.y = Game.height - 10 - this.h;
+    var up = false;
 
     this.step = function(dt) {
-	if(Game.keys['left']) { this.vx = -this.maxVel; }
-	else if(Game.keys['right']) { this.vx = this.maxVel; }
-	else { this.vx = 0; }
+        if (Game.keys['left']) {
+            this.vx = -this.maxVel;
+        } else if (Game.keys['right']) {
+            this.vx = this.maxVel;
+        } else {
+            this.vx = 0;
+        }
 
-	this.x += this.vx * dt;
+        this.x += this.vx * dt;
 
-	if(this.x < 0) { this.x = 0; }
-	else if(this.x > Game.width - this.w) { 
-	    this.x = Game.width - this.w;
-	}
+        if (this.x < 0) {
+            this.x = 0;
+        } else if (this.x > Game.width - this.w) {
+            this.x = Game.width - this.w
+        }
 
-	this.reload-=dt;
-	if(Game.keys['fire'] && this.reload < 0) {
-	    // Esta pulsada la tecla de disparo y ya ha pasado el tiempo reload
-	    Game.keys['fire'] = false;
-	    this.reload = this.reloadTime;
+        this.reload -= dt;
+         if(!Game.keys['fire']) this.up = true;
+        if(this.up && Game.keys['fire'] && this.reload < 0) {
+            this.up = false;
+            // Esta pulsada la tecla de disparo y ya ha pasado el tiempo reload
+            //Game.keys['fire'] = false;
+            this.reload = this.reloadTime;
 
-	    // Se añaden al gameboard 2 misiles 
-	    this.board.add(new PlayerMissile(this.x,this.y+this.h/2));
-	    this.board.add(new PlayerMissile(this.x+this.w,this.y+this.h/2));
-	}
-    };
-};
+            // Se añaden al gameboard 2 misiles 
+            this.board.add(new PlayerMissile(this.x, this.y + this.h / 2));
+            this.board.add(new PlayerMissile(this.x + this.w, this.y + this.h / 2));
+        }
+
+        if (Game.keys['fireb_right'] && this.reload < 0) {
+            Game.keys['fireb_right'] = false;
+
+            this.reload = this.reloadTime;
+
+            this.board.add(new FireBall(this.x, this.y, -1));
+
+        }
+
+        if (Game.keys['fireb_left'] && this.reload < 0) {
+            Game.keys['fireb_left'] = false;
+
+            this.reload = this.reloadTime;
+
+            this.board.add(new FireBall(this.x, this.y, 1));
+
+        }
+    }
+}
 
 // Heredamos del prototipo new Sprite()
 PlayerShip.prototype = new Sprite();
@@ -366,6 +418,44 @@ Explosion.prototype.step = function(dt) {
     }
 }
 
+
+var FireBall = function(x, y, factor) {
+    this.setup('explosion', {
+        vy: -700,
+        startX : x,
+        startY : 10,
+        vx : 30 * factor,
+        desplazX :-20,
+        desplazY : 30,
+        damage: 50
+    });
+        /* Tener en cuenta el escalado para h y w */
+        this.x = x - this.w /20; 
+        this.y = y - this.h / 10;
+};
+
+FireBall.prototype = new Sprite();
+
+FireBall.prototype.type = OBJECT_PLAYER_PROJECTILE;
+
+FireBall.prototype.step = function(dt) {
+    this.x += dt * this.vx;
+    this.desplazX += dt * Math.abs(this.vx);
+    this.x += dt * this.vx;
+    this.y = this.desplazY + Math.pow(this.desplazX, 2);
+
+
+    var collision = this.board.collide(this, OBJECT_ENEMY);  
+    if (collision) { 
+        collision.hit(this.damage);
+    } else if (this.y > 500) {
+        this.board.remove(this);
+    }
+}
+
+FireBall.prototype.draw = function(ctx) {
+    SpriteSheet.draw(ctx, 'explosion', this.x, this.y, 1, 40, 40);
+}
 
 
 $(function() {

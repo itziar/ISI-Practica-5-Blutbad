@@ -15,6 +15,7 @@ describe("Default - Clase Starfield", function(){
 // shooter.
 
     var canvas, ctx;
+    var dcanvas, dctx;
 
     beforeEach(function(){
 	// Hemos enlazado en jasmine/spec/javascript/fixtures el fichero index.html
@@ -25,9 +26,13 @@ describe("Default - Clase Starfield", function(){
 
 	ctx = canvas.getContext('2d');
 	expect(ctx).toBeDefined();
-
+  dcanvas=canvas;
+  dctx=ctx;
     });
-
+  afterEach(function(){
+    canvas=dcanvas;
+    ctx=dctx;
+  });
 
     it("draw + step + draw", function(){
 	spyOn(ctx, "drawImage");

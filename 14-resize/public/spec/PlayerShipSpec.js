@@ -6,6 +6,7 @@ describe("09 - Clase PlayerShip", function() {
     // flechas izda y dcha
 
     var canvas, ctx;
+    var dcanvas, dSpriteSheet;
 
     beforeEach(function() {
         loadFixtures('index.html');
@@ -15,7 +16,13 @@ describe("09 - Clase PlayerShip", function() {
 
         ctx = canvas.getContext('2d');
         expect(ctx).toBeDefined();
+        dcanvas=canvas;
+        dSpriteSheet = SpriteSheet;
 
+    });
+    afterEach(function(){
+        canvas=dcanvas;
+        SpriteSheet = dSpriteSheet;
     });
 
 
